@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MANISH — Web Developer · Dubai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #050508;
+    --white: #f0ede6;
+    --accent: #ff4d1c;
+    --accent2: #ffb347;
+    --neon: #00ffe7;
+    --neon2: #a855f7;
+    --dim: #0e0e14;
+    --muted: #444;
+    --border: #1c1c26;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CURSOR */
+  .cursor {
+    position: fixed; width: 10px; height: 10px;
+    background: var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: width .15s, height .15s, background .2s;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    position: fixed; width: 38px; height: 38px;
+    border: 1px solid var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%,-50%);
+    transition: width .2s, height .2s, border-color .2s;
+    opacity: 0.5;
+  }
+
+  /* NOISE */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1000; opacity: 0.35;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px;
+    border-bottom: 1px solid transparent;
+    transition: all .3s;
+  }
+  nav.scrolled {
+    background: rgba(5,5,8,0.94);
+    border-color: var(--border);
+    backdrop-filter: blur(14px);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif; font-size: 26px;
+    letter-spacing: 3px; color: var(--white); text-decoration: none;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a {
+    font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px;
+    color: var(--muted); text-decoration: none; text-transform: uppercase;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--neon); }
+  .nav-contact-badge {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    border: 1px solid var(--accent); color: var(--accent);
+    padding: 6px 14px; letter-spacing: 1px;
+    animation: borderPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes borderPulse {
+    0%,100% { border-color: var(--accent); box-shadow: 0 0 0 rgba(255,77,28,0); }
+    50% { border-color: var(--accent2); box-shadow: 0 0 12px rgba(255,77,28,0.4); }
+  }
+
+  /* MATRIX CANVAS */
+  #matrix-canvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 1; opacity: 0.035;
+  }
+
+  /* PARTICLE CANVAS */
+  #particle-canvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 2;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 48px 64px;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg-text {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -52%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(120px, 22vw, 280px);
+    letter-spacing: -4px; color: transparent;
+    -webkit-text-stroke: 1px rgba(0,255,231,0.06);
+    white-space: nowrap; pointer-events: none; user-select: none;
+    animation: drift 10s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    from { transform: translate(-50%, -52%) scale(1); }
+    to   { transform: translate(-50%, -50%) scale(1.025); }
+  }
+
+  /* Floating code orbs */
+  .code-orb {
+    position: absolute;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--neon);
+    opacity: 0;
+    pointer-events: none;
+    animation: floatOrb linear infinite;
+    white-space: nowrap;
+    text-shadow: 0 0 8px var(--neon);
+  }
+  @keyframes floatOrb {
+    0%   { opacity: 0; transform: translateY(0) translateX(0); }
+    10%  { opacity: 0.4; }
+    90%  { opacity: 0.4; }
+    100% { opacity: 0; transform: translateY(-180px) translateX(40px); }
+  }
+
+  .hero-tag {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    letter-spacing: 4px; color: var(--neon); text-transform: uppercase;
+    margin-bottom: 20px;
+    opacity: 0; animation: fadeUp .8s ease .2s forwards;
+    text-shadow: 0 0 10px rgba(0,255,231,0.4);
+  }
+  .hero-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 14vw, 180px);
+    line-height: 0.88; letter-spacing: -2px; color: var(--white);
+    opacity: 0; animation: fadeUp .8s ease .4s forwards;
+  }
+  .hero-name .outline { color: transparent; -webkit-text-stroke: 2px var(--white); }
+  .hero-name .accent { color: var(--accent); }
+  .hero-sub {
+    display: flex; align-items: center; gap: 24px;
+    margin-top: 32px;
+    opacity: 0; animation: fadeUp .8s ease .6s forwards;
+  }
+  .hero-desc { font-size: 15px; color: #888; max-width: 380px; line-height: 1.7; }
+  .hero-contacts {
+    display: flex; flex-direction: column; gap: 6px;
+    opacity: 0; animation: fadeUp .8s ease .75s forwards;
+    margin-top: 20px;
+  }
+  .hero-contact-item {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    color: #666; letter-spacing: 1px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-contact-item span { color: var(--accent); }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--accent); color: var(--white);
+    padding: 14px 28px;
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase;
+    text-decoration: none; border: none; cursor: none;
+    white-space: nowrap;
+    transition: background .2s, transform .2s, box-shadow .2s;
+    position: relative; overflow: hidden;
+  }
+  .hero-cta::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    50%,100% { transform: translateX(100%); }
+  }
+  .hero-cta:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,77,28,0.4); }
+  .hero-cta .arrow { font-size: 16px; transition: transform .2s; }
+  .hero-cta:hover .arrow { transform: translateX(4px); }
+  .hero-scroll {
+    position: absolute; right: 48px; bottom: 64px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; animation: fadeUp .8s ease 1s forwards;
+  }
+  .scroll-line {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, var(--neon), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%,100% { opacity: 0.3; transform: scaleY(1); }
+    50%      { opacity: 1; transform: scaleY(1.2); }
+  }
+  .scroll-text {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 3px; color: var(--muted);
+    text-transform: uppercase; writing-mode: vertical-rl;
+  }
+
+  /* Live status dot */
+  .live-dot {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'DM Mono', monospace; font-size: 11px; color: #4ade80;
+    letter-spacing: 1px;
+  }
+  .live-dot::before {
+    content: ''; width: 7px; height: 7px;
+    background: #4ade80; border-radius: 50%;
+    animation: livePulse 1.8s ease-in-out infinite;
+    box-shadow: 0 0 8px #4ade80;
+  }
+  @keyframes livePulse {
+    0%,100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* MARQUEE */
+  .marquee-wrap {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden; padding: 14px 0;
+    background: linear-gradient(90deg, rgba(0,255,231,0.02), transparent, rgba(255,77,28,0.02));
+  }
+  .marquee-track {
+    display: flex; gap: 0; width: max-content;
+    animation: marquee 22s linear infinite;
+  }
+  .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .marquee-item {
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+    letter-spacing: 4px; color: var(--muted);
+    padding: 0 32px; white-space: nowrap;
+    transition: color .2s;
+  }
+  .marquee-item:hover { color: var(--neon); }
+  .marquee-item span { color: var(--accent); margin-left: 32px; }
+
+  /* SECTIONS */
+  section {
+    padding: 100px 48px;
+    position: relative; z-index: 10;
+  }
+  .section-label {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 4px; color: var(--accent); text-transform: uppercase;
+    margin-bottom: 48px; opacity: 0.8;
+  }
+
+  /* ABOUT */
+  .about-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: start;
+  }
+  .about-headline {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 7vw, 96px);
+    line-height: 0.9; letter-spacing: -1px;
+  }
+  .about-headline .line2 {
+    color: transparent;
+    -webkit-text-stroke: 2px var(--accent);
+  }
+  .about-body { font-size: 15px; color: #888; line-height: 1.8; }
+  .about-body strong { color: var(--white); }
+  .stats-row { display: flex; gap: 40px; margin-top: 40px; }
+  .stat-n {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px; color: var(--accent); line-height: 1;
+  }
+  .stat-l {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--muted); letter-spacing: 2px; text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* TECH STACK ORBIT */
+  .tech-orbit-wrap {
+    position: relative; width: 320px; height: 320px;
+    margin: 0 auto;
+  }
+  .orbit-center {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px; color: var(--neon);
+    text-shadow: 0 0 20px var(--neon);
+    z-index: 5;
+  }
+  .orbit-ring {
+    position: absolute; top: 50%; left: 50%;
+    border-radius: 50%;
+    border: 1px solid rgba(0,255,231,0.1);
+    transform: translate(-50%,-50%);
+    animation: orbitSpin linear infinite;
+  }
+  .orbit-ring:nth-child(2) { width: 160px; height: 160px; animation-duration: 8s; }
+  .orbit-ring:nth-child(3) { width: 240px; height: 240px; animation-duration: 14s; animation-direction: reverse; border-color: rgba(255,77,28,0.1); }
+  .orbit-ring:nth-child(4) { width: 310px; height: 310px; animation-duration: 20s; border-color: rgba(168,85,247,0.1); }
+  @keyframes orbitSpin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+  .orbit-dot {
+    position: absolute; width: 36px; height: 36px;
+    background: var(--dim); border: 1px solid var(--border);
+    border-radius: 50%;
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    color: var(--neon); letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center;
+    animation: counterSpin linear infinite;
+    text-shadow: 0 0 6px var(--neon);
+  }
+  @keyframes counterSpin { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+
+  /* SKILLS */
+  .skills-section { background: linear-gradient(180deg, transparent, rgba(0,255,231,0.01), transparent); }
+  .skills-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+  }
+  .skill-card {
+    background: var(--dim); padding: 36px 28px;
+    border: 1px solid var(--border);
+    transition: border-color .3s, transform .3s, box-shadow .3s;
+    position: relative; overflow: hidden;
+  }
+  .skill-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--neon));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .4s ease;
+  }
+  .skill-card:hover::before { transform: scaleX(1); }
+  .skill-card:hover {
+    border-color: rgba(0,255,231,0.2);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
+  .skill-icon {
+    font-family: 'Bebas Neue', sans-serif; font-size: 42px;
+    color: transparent; -webkit-text-stroke: 1px rgba(0,255,231,0.2);
+    margin-bottom: 16px; transition: color .3s, -webkit-text-stroke .3s;
+  }
+  .skill-card:hover .skill-icon {
+    color: var(--neon); -webkit-text-stroke: 0;
+    text-shadow: 0 0 20px var(--neon);
+  }
+  .skill-name {
+    font-size: 14px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .skill-desc { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 20px; }
+  .skill-level { height: 2px; background: #111; overflow: hidden; }
+  .skill-level-fill {
+    height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--accent), var(--neon));
+    transition: width 1.2s ease;
+  }
+
+  /* PROJECTS */
+  .projects-grid { display: flex; flex-direction: column; gap: 0; }
+  .project-row {
+    display: grid; grid-template-columns: 80px 1fr auto auto;
+    align-items: center; gap: 32px;
+    padding: 28px 0; border-bottom: 1px solid var(--border);
+    cursor: none; transition: padding .3s;
+    position: relative; overflow: hidden;
+  }
+  .project-row::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 0; background: linear-gradient(90deg, rgba(0,255,231,0.04), transparent);
+    transition: width .4s ease;
+  }
+  .project-row:hover::before { width: 100%; }
+  .project-row:hover { padding-left: 16px; }
+  .project-num {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    color: var(--muted); letter-spacing: 2px;
+  }
+  .project-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(28px, 3.5vw, 48px); letter-spacing: 1px;
+    transition: color .2s;
+  }
+  .project-row:hover .project-name { color: var(--neon); }
+  .project-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .project-tag {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 1px; color: var(--accent);
+    border: 1px solid rgba(255,77,28,0.3); padding: 4px 10px;
+    text-transform: uppercase;
+  }
+  .project-arrow {
+    font-size: 20px; color: var(--muted);
+    transition: color .2s, transform .2s;
+  }
+  .project-row:hover .project-arrow { color: var(--neon); transform: translateX(4px); }
+
+  /* PROJECT CARDS - Real World Showcase */
+  .project-cards-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 2px; margin-top: 60px;
+  }
+  .project-card {
+    background: var(--dim);
+    border: 1px solid var(--border);
+    padding: 0; overflow: hidden;
+    position: relative;
+    transition: border-color .3s, transform .3s;
+    cursor: none;
+  }
+  .project-card:hover { border-color: rgba(0,255,231,0.3); transform: scale(1.01); }
+  .project-card-preview {
+    height: 220px; position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-browser-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 32px;
+    background: #111; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px; padding: 0 12px;
+    z-index: 3;
+  }
+  .browser-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .browser-dot:nth-child(1) { background: #ff5f57; }
+  .browser-dot:nth-child(2) { background: #ffbd2e; }
+  .browser-dot:nth-child(3) { background: #28ca41; }
+  .browser-url {
+    margin-left: 10px; font-family: 'DM Mono', monospace;
+    font-size: 10px; color: #555; flex: 1;
+  }
+  .card-preview-inner {
+    position: absolute; top: 32px; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+  }
+  /* Simulated website previews */
+  .preview-restaurant { background: linear-gradient(135deg, #1a0a00 0%, #2d1500 50%, #1a0a00 100%); }
+  .preview-gym { background: linear-gradient(135deg, #000 0%, #0a0a0a 50%, #111 100%); }
+  .preview-realestate { background: linear-gradient(135deg, #050510 0%, #0a0520 100%); }
+  .preview-ecom { background: linear-gradient(135deg, #080808 0%, #0f0f1a 100%); }
+  .preview-saas { background: linear-gradient(135deg, #030303 0%, #0a050a 100%); }
+
+  .preview-hero-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px; letter-spacing: 2px; text-align: center;
+    padding-top: 20px;
+    animation: previewPulse 4s ease-in-out infinite;
+  }
+  @keyframes previewPulse {
+    0%,100% { opacity: 0.9; } 50% { opacity: 0.6; }
+  }
+  .preview-nav {
+    position: absolute; top: 0; left: 0; right: 0; height: 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .preview-nav-logo { font-family: 'Bebas Neue'; font-size: 14px; }
+  .preview-nav-links { display: flex; gap: 12px; }
+  .preview-nav-link { font-size: 8px; color: #666; font-family: 'DM Mono', monospace; }
+  .preview-big-heading {
+    position: absolute; top: 45px; left: 16px; right: 16px;
+    font-family: 'Bebas Neue', sans-serif; line-height: 0.9;
+  }
+  .preview-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace; font-size: 7px;
+    letter-spacing: 1px; padding: 2px 6px;
+    text-transform: uppercase;
+  }
+  .preview-btn {
+    display: inline-block; font-family: 'DM Mono', monospace;
+    font-size: 8px; padding: 5px 12px; letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .preview-grid-lines {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(0,255,231,0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,255,231,0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+  .preview-scan-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0,255,231,0.3), transparent);
+    animation: scanLine 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes scanLine {
+    0% { top: 0; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  .project-card-body { padding: 24px 28px; }
+  .project-card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px; letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .project-card-desc {
+    font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 16px;
+  }
+  .project-card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .project-card-tech { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* CODE TERMINAL ANIMATION */
+  .terminal-wrap {
+    background: #080810; border: 1px solid var(--border);
+    padding: 24px; font-family: 'DM Mono', monospace;
+    font-size: 12px; line-height: 2; margin-top: 20px;
+    position: relative; overflow: hidden;
+  }
+  .terminal-wrap::before {
+    content: '● ● ●'; color: #444; font-size: 14px;
+    position: absolute; top: 12px; left: 16px;
+    letter-spacing: 4px;
+  }
+  .terminal-content { margin-top: 24px; }
+  .t-line { opacity: 0; animation: typeLine .3s ease forwards; }
+  .t-line.green { color: #4ade80; }
+  .t-line.cyan { color: var(--neon); }
+  .t-line.yellow { color: var(--accent2); }
+  .t-line.red { color: var(--accent); }
+  .t-line.muted { color: #555; }
+  @keyframes typeLine { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* PROCESS */
+  .process-steps {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+  }
+  .process-step {
+    background: var(--dim); padding: 40px 28px;
+    border: 1px solid var(--border); position: relative;
+    overflow: hidden;
+    transition: border-color .3s;
+  }
+  .process-step:hover { border-color: rgba(255,77,28,0.3); }
+  .process-step::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .5s ease;
+  }
+  .process-step:hover::after { transform: scaleX(1); }
+  .step-n {
+    font-family: 'Bebas Neue', sans-serif; font-size: 64px;
+    color: transparent; -webkit-text-stroke: 1px rgba(255,77,28,0.15);
+    line-height: 1; margin-bottom: 16px;
+  }
+  .step-title { font-size: 16px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+  .step-desc { font-size: 13px; color: #666; line-height: 1.7; }
+
+  /* CONTACT */
+  .contact-section {
+    padding: 120px 48px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .contact-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255,77,28,0.06), transparent);
+    pointer-events: none;
+  }
+  .contact-grid-lines {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(255,77,28,0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,77,28,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .contact-eyebrow {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 4px; color: var(--accent); text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .contact-headline {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 12vw, 160px);
+    line-height: 0.88; letter-spacing: -2px;
+    margin-bottom: 24px;
+  }
+  .contact-headline .outline {
+    color: transparent; -webkit-text-stroke: 2px var(--accent);
+  }
+  .contact-sub { font-size: 14px; color: #666; letter-spacing: 2px; margin-bottom: 48px; font-family: 'DM Mono', monospace; }
+  .contact-info-row {
+    display: flex; justify-content: center; gap: 48px;
+    margin-bottom: 48px; flex-wrap: wrap;
+  }
+  .contact-info-item {
+    font-family: 'DM Mono', monospace; font-size: 13px;
+    color: var(--white); display: flex; align-items: center; gap: 10px;
+  }
+  .contact-info-item .label { color: var(--muted); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+  .contact-info-item .value { color: var(--neon); text-shadow: 0 0 10px rgba(0,255,231,0.3); }
+  .contact-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+  .contact-link {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase; text-decoration: none;
+    padding: 14px 28px; border: 1px solid var(--border);
+    color: var(--muted); transition: all .2s;
+  }
+  .contact-link:hover { color: var(--white); border-color: var(--muted); }
+  .contact-link.primary {
+    background: var(--accent); border-color: var(--accent);
+    color: var(--white);
+  }
+  .contact-link.primary:hover { background: var(--accent2); border-color: var(--accent2); }
+
+  /* REVEAL */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s ease, transform .8s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; z-index: 10;
+  }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 3px; }
+  .footer-logo span { color: var(--accent); }
+  .footer-copy { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .footer-loc { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+
+  /* GLITCH text effect */
+  .glitch {
+    position: relative; display: inline-block;
+  }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    font-family: inherit; font-size: inherit;
+    color: inherit;
+  }
+  .glitch::before {
+    color: var(--neon); clip-path: polygon(0 0, 100% 0, 100% 40%, 0 40%);
+    animation: glitchTop 4s ease-in-out infinite;
+  }
+  .glitch::after {
+    color: var(--accent); clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+    animation: glitchBottom 4s ease-in-out infinite;
+  }
+  @keyframes glitchTop {
+    0%,90%,100% { transform: translate(0); opacity: 0; }
+    91% { transform: translate(-3px, -2px); opacity: 0.6; }
+    93% { transform: translate(3px, 2px); opacity: 0; }
+    95% { transform: translate(-3px, -2px); opacity: 0.4; }
+    97% { transform: translate(0); opacity: 0; }
+  }
+  @keyframes glitchBottom {
+    0%,90%,100% { transform: translate(0); opacity: 0; }
+    92% { transform: translate(3px, 2px); opacity: 0.6; }
+    94% { transform: translate(-3px, -2px); opacity: 0; }
+    96% { transform: translate(3px); opacity: 0.4; }
+    98% { transform: translate(0); opacity: 0; }
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    section { padding: 60px 20px; }
+    .hero { padding: 0 20px 48px; }
+    .about-grid, .skills-grid, .process-steps, .project-cards-grid { grid-template-columns: 1fr; }
+    .hero-sub { flex-direction: column; align-items: flex-start; }
+    .contact-section { padding: 80px 20px; }
+    footer { padding: 24px 20px; flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CANVASES -->
+<canvas id="matrix-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">MAN<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="live-dot">Available for Work</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-text">MANISH</div>
+
+  <!-- floating code orbs injected by JS -->
+
+  <div class="hero-tag">⬡ Web Developer · Dubai, UAE</div>
+  <h1 class="hero-name">
+    MAN<span class="accent">.</span><br>
+    <span class="outline glitch" data-text="ISH">ISH</span>
+  </h1>
+  <div class="hero-sub">
+    <div>
+      <p class="hero-desc">Building fast, bold websites and apps that make businesses look unstoppable — from Dubai to the world.</p>
+      <div class="hero-contacts">
+        <div class="hero-contact-item"><span>✆</span> +971 54 466 4983</div>
+        <div class="hero-contact-item"><span>✉</span> manigandanvijayaraghavan@gmail.com</div>
+        <div class="hero-contact-item"><span>📍</span> Dubai, UAE</div>
+      </div>
+    </div>
+    <a href="#contact" class="hero-cta">Let's Work <span class="arrow">→</span></a>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span class="scroll-text">Scroll</span>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">HTML<span>✦</span></span>
+    <span class="marquee-item">CSS<span>✦</span></span>
+    <span class="marquee-item">JavaScript<span>✦</span></span>
+    <span class="marquee-item">WordPress<span>✦</span></span>
+    <span class="marquee-item">Webflow<span>✦</span></span>
+    <span class="marquee-item">React<span>✦</span></span>
+    <span class="marquee-item">Web Design<span>✦</span></span>
+    <span class="marquee-item">Dubai<span>✦</span></span>
+    <span class="marquee-item">Freelancer<span>✦</span></span>
+    <span class="marquee-item">UI/UX<span>✦</span></span>
+    <span class="marquee-item">HTML<span>✦</span></span>
+    <span class="marquee-item">CSS<span>✦</span></span>
+    <span class="marquee-item">JavaScript<span>✦</span></span>
+    <span class="marquee-item">WordPress<span>✦</span></span>
+    <span class="marquee-item">Webflow<span>✦</span></span>
+    <span class="marquee-item">React<span>✦</span></span>
+    <span class="marquee-item">Web Design<span>✦</span></span>
+    <span class="marquee-item">Dubai<span>✦</span></span>
+    <span class="marquee-item">Freelancer<span>✦</span></span>
+    <span class="marquee-item">UI/UX<span>✦</span></span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-label">01 — About</div>
+  <div class="about-grid reveal">
+    <div>
+      <div class="about-headline">
+        I BUILD<br>WEBSITES<br><span class="line2">THAT HIT.</span>
+      </div>
+      <!-- TECH ORBIT -->
+      <div class="tech-orbit-wrap" style="margin-top:48px;">
+        <div class="orbit-center">DEV</div>
+        <div class="orbit-ring">
+          <div class="orbit-dot" style="top:-18px;left:calc(50% - 18px);">HTML</div>
+        </div>
+        <div class="orbit-ring">
+          <div class="orbit-dot" style="top:-18px;left:calc(50% - 18px);">CSS</div>
+          <div class="orbit-dot" style="bottom:-18px;left:calc(50% - 18px);">JS</div>
+        </div>
+        <div class="orbit-ring">
+          <div class="orbit-dot" style="top:-18px;left:calc(50% - 18px);">WP</div>
+          <div class="orbit-dot" style="bottom:-18px;left:calc(50% - 18px);">WF</div>
+          <div class="orbit-dot" style="top:calc(50% - 18px);right:-18px;">UX</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="about-body">
+        Hey, I'm <strong>Manish</strong> — a web developer based in the heart of <strong>Dubai, UAE</strong>.<br><br>
+        I specialise in building clean, fast, and visually bold websites for businesses, brands, and entrepreneurs. Whether you need a landing page that converts or a full website that turns heads — I make it happen.<br><br>
+        I'm leveling up every day, turning skills into results and results into income. No fluff. Just code that works.
+      </p>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-n">5+</div>
+          <div class="stat-l">Projects Done</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n">∞</div>
+          <div class="stat-l">Motivation</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n">DXB</div>
+          <div class="stat-l">Based In</div>
+        </div>
+      </div>
+      <!-- Terminal -->
+      <div class="terminal-wrap" style="margin-top:36px;">
+        <div class="terminal-content" id="terminal"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills" class="skills-section">
+  <div class="section-label">02 — Tech Stack</div>
+  <div class="skills-grid reveal">
+    <div class="skill-card">
+      <div class="skill-icon">HTML</div>
+      <div class="skill-name">HTML</div>
+      <div class="skill-desc">Structure of every website. Clean, semantic, and fast.</div>
+      <div class="skill-level"><div class="skill-level-fill" style="width:0%" data-w="80%"></div></div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-icon">CSS</div>
+      <div class="skill-name">CSS & Design</div>
+      <div class="skill-desc">Making things look stunning. Layouts, animations, responsiveness.</div>
+      <div class="skill-level"><div class="skill-level-fill" style="width:0%" data-w="75%"></div></div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-icon">JS</div>
+      <div class="skill-name">JavaScript</div>
+      <div class="skill-desc">Interactivity and logic. Making websites actually work.</div>
+      <div class="skill-level"><div class="skill-level-fill" style="width:0%" data-w="60%"></div></div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-icon">WP</div>
+      <div class="skill-name">WordPress</div>
+      <div class="skill-desc">Most businesses run on WordPress. I make them fly.</div>
+      <div class="skill-level"><div class="skill-level-fill" style="width:0%" data-w="70%"></div></div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-icon">WF</div>
+      <div class="skill-name">Webflow</div>
+      <div class="skill-desc">No-code powerhouse. Pixel-perfect designs, zero compromise.</div>
+      <div class="skill-level"><div class="skill-level-fill" style="width:0%" data-w="65%"></div></div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-icon">UX</div>
+      <div class="skill-name">UI / UX Thinking</div>
+      <div class="skill-desc">Sites that look good AND feel good to use. That's the goal.</div>
+      <div class="skill-level"><div class="skill-level-fill" style="width:0%" data-w="72%"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- WORK — List -->
+<section id="work">
+  <div class="section-label">03 — Projects</div>
+  <div class="projects-grid reveal">
+    <div class="project-row">
+      <div class="project-num">01</div>
+      <div class="project-name">Spice Garden Restaurant</div>
+      <div class="project-tags">
+        <span class="project-tag">HTML</span>
+        <span class="project-tag">CSS</span>
+        <span class="project-tag">JS</span>
+      </div>
+      <div class="project-arrow">↗</div>
+    </div>
+    <div class="project-row">
+      <div class="project-num">02</div>
+      <div class="project-name">BeastMode Gym & Fitness</div>
+      <div class="project-tags">
+        <span class="project-tag">WordPress</span>
+        <span class="project-tag">Design</span>
+      </div>
+      <div class="project-arrow">↗</div>
+    </div>
+    <div class="project-row">
+      <div class="project-num">03</div>
+      <div class="project-name">Dubai Luxe Properties</div>
+      <div class="project-tags">
+        <span class="project-tag">Webflow</span>
+        <span class="project-tag">JS</span>
+      </div>
+      <div class="project-arrow">↗</div>
+    </div>
+    <div class="project-row">
+      <div class="project-num">04</div>
+      <div class="project-name">Streetwear E-Commerce Store</div>
+      <div class="project-tags">
+        <span class="project-tag">WordPress</span>
+        <span class="project-tag">WooCommerce</span>
+      </div>
+      <div class="project-arrow">↗</div>
+    </div>
+    <div class="project-row">
+      <div class="project-num">05</div>
+      <div class="project-name">TaskFlow SaaS Dashboard</div>
+      <div class="project-tags">
+        <span class="project-tag">HTML/CSS/JS</span>
+        <span class="project-tag">UI Design</span>
+      </div>
+      <div class="project-arrow">↗</div>
+    </div>
+    <div class="project-row">
+      <div class="project-num">06</div>
+      <div class="project-name">Your Project Next ↗</div>
+      <div class="project-tags">
+        <span class="project-tag">Let's Talk</span>
+      </div>
+      <div class="project-arrow">→</div>
+    </div>
+  </div>
+
+  <!-- PROJECT CARDS — Real World Previews -->
+  <div class="project-cards-grid reveal" style="margin-top:80px;">
+
+    <!-- Card 1: Restaurant -->
+    <div class="project-card">
+      <div class="project-card-preview preview-restaurant">
+        <div class="card-browser-bar">
+          <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
+          <div class="browser-url">spicegarden.ae</div>
+        </div>
+        <div class="card-preview-inner">
+          <div class="preview-grid-lines"></div>
+          <div class="preview-scan-line"></div>
+          <div class="preview-nav">
+            <div class="preview-nav-logo" style="color:#e8a050;">SPICE GARDEN</div>
+            <div class="preview-nav-links">
+              <span class="preview-nav-link">Menu</span>
+              <span class="preview-nav-link">Reserve</span>
+              <span class="preview-nav-link">About</span>
+            </div>
+          </div>
+          <div class="preview-big-heading" style="font-size:38px;color:#e8a050;">AUTHENTIC<br><span style="color:#fff;-webkit-text-stroke:1px #e8a050;color:transparent;">DUBAI</span><br><span style="font-size:28px;color:#fff;">CUISINE ✦</span></div>
+          <div style="position:absolute;bottom:16px;left:16px;display:flex;gap:8px;">
+            <span class="preview-badge" style="background:rgba(232,160,80,0.15);color:#e8a050;border:1px solid rgba(232,160,80,0.3);">⭐ 4.9 RATED</span>
+            <span class="preview-badge" style="background:rgba(255,255,255,0.05);color:#888;border:1px solid #222;">SINCE 2019</span>
+          </div>
+          <div style="position:absolute;bottom:16px;right:16px;">
+            <span class="preview-btn" style="background:#e8a050;color:#000;">BOOK TABLE →</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-card-body">
+        <div class="project-card-title">Spice Garden Restaurant</div>
+        <div class="project-card-desc">A full restaurant landing page with online reservation system, animated menu gallery, and Google Maps integration. Built for a Dubai-based Indian restaurant.</div>
+        <div class="project-card-footer">
+          <div class="project-card-tech">
+            <span class="project-tag">HTML</span>
+            <span class="project-tag">CSS</span>
+            <span class="project-tag">JS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Gym -->
+    <div class="project-card">
+      <div class="project-card-preview preview-gym">
+        <div class="card-browser-bar">
+          <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
+          <div class="browser-url">beastmodegym.ae</div>
+        </div>
+        <div class="card-preview-inner">
+          <div class="preview-grid-lines"></div>
+          <div class="preview-scan-line" style="animation-delay:1.2s;background:linear-gradient(90deg,transparent,rgba(255,77,28,0.4),transparent);"></div>
+          <div class="preview-nav">
+            <div class="preview-nav-logo" style="color:#ff4d1c;">BEASTMODE</div>
+            <div class="preview-nav-links">
+              <span class="preview-nav-link">Classes</span>
+              <span class="preview-nav-link">Pricing</span>
+              <span class="preview-nav-link">Join</span>
+            </div>
+          </div>
+          <div class="preview-big-heading" style="font-size:42px;color:#ff4d1c;">NO PAIN<br><span style="color:transparent;-webkit-text-stroke:1px #ff4d1c;">NO GAIN</span></div>
+          <div style="position:absolute;bottom:30px;left:16px;right:16px;background:rgba(255,77,28,0.08);border:1px solid rgba(255,77,28,0.2);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:18px;font-family:'Bebas Neue';color:#ff4d1c;">FREE TRIAL</div>
+              <div style="font-size:8px;color:#666;font-family:'DM Mono',monospace;letter-spacing:1px;">FIRST WEEK ON US</div>
+            </div>
+            <span class="preview-btn" style="background:#ff4d1c;color:#fff;">START NOW →</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-card-body">
+        <div class="project-card-title">BeastMode Gym & Fitness</div>
+        <div class="project-card-desc">High-energy WordPress site with class schedules, membership pricing tables, trainer profiles, and a lead capture form. Fully mobile responsive.</div>
+        <div class="project-card-footer">
+          <div class="project-card-tech">
+            <span class="project-tag">WordPress</span>
+            <span class="project-tag">CSS</span>
+            <span class="project-tag">Design</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Real Estate -->
+    <div class="project-card">
+      <div class="project-card-preview preview-realestate">
+        <div class="card-browser-bar">
+          <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
+          <div class="browser-url">dubailuxeproperties.com</div>
+        </div>
+        <div class="card-preview-inner">
+          <div class="preview-grid-lines"></div>
+          <div class="preview-scan-line" style="animation-delay:0.6s;background:linear-gradient(90deg,transparent,rgba(168,85,247,0.4),transparent);"></div>
+          <div class="preview-nav">
+            <div class="preview-nav-logo" style="color:#c4a760;letter-spacing:2px;font-size:11px;">DUBAI LUXE PROPERTIES</div>
+            <div class="preview-nav-links">
+              <span class="preview-nav-link">Buy</span>
+              <span class="preview-nav-link">Rent</span>
+              <span class="preview-nav-link">Contact</span>
+            </div>
+          </div>
+          <div class="preview-big-heading" style="font-size:34px;color:#c4a760;line-height:1;">LUXURY<br><span style="color:transparent;-webkit-text-stroke:1px #c4a760;">LIVING</span><br><span style="font-size:12px;color:#888;font-family:'DM Mono',monospace;letter-spacing:2px;">DUBAI · UAE</span></div>
+          <div style="position:absolute;bottom:14px;left:16px;display:flex;gap:6px;">
+            <div style="background:rgba(196,167,96,0.1);border:1px solid rgba(196,167,96,0.2);padding:6px 10px;">
+              <div style="font-size:14px;font-family:'Bebas Neue';color:#c4a760;">AED 2.4M</div>
+              <div style="font-size:7px;color:#555;font-family:'DM Mono',monospace;letter-spacing:1px;">PALM JUMEIRAH</div>
+            </div>
+            <div style="background:rgba(196,167,96,0.1);border:1px solid rgba(196,167,96,0.2);padding:6px 10px;">
+              <div style="font-size:14px;font-family:'Bebas Neue';color:#c4a760;">AED 850K</div>
+              <div style="font-size:7px;color:#555;font-family:'DM Mono',monospace;letter-spacing:1px;">DOWNTOWN</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="project-card-body">
+        <div class="project-card-title">Dubai Luxe Properties</div>
+        <div class="project-card-desc">Premium real estate Webflow site with animated property listings, interactive map view, mortgage calculator, and WhatsApp inquiry integration.</div>
+        <div class="project-card-footer">
+          <div class="project-card-tech">
+            <span class="project-tag">Webflow</span>
+            <span class="project-tag">JS</span>
+            <span class="project-tag">Maps API</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: E-Commerce -->
+    <div class="project-card">
+      <div class="project-card-preview preview-ecom">
+        <div class="card-browser-bar">
+          <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
+          <div class="browser-url">dropthecity.store</div>
+        </div>
+        <div class="card-preview-inner">
+          <div class="preview-grid-lines"></div>
+          <div class="preview-scan-line" style="animation-delay:2s;background:linear-gradient(90deg,transparent,rgba(255,179,71,0.4),transparent);"></div>
+          <div class="preview-nav">
+            <div class="preview-nav-logo" style="color:#fff;font-size:13px;">DROP THE CITY</div>
+            <div class="preview-nav-links">
+              <span class="preview-nav-link">Shop</span>
+              <span class="preview-nav-link">Drops</span>
+              <span class="preview-nav-link" style="color:#ffb347;">🛒 3</span>
+            </div>
+          </div>
+          <div style="position:absolute;top:40px;left:16px;">
+            <div style="font-family:'DM Mono',monospace;font-size:8px;color:#ffb347;letter-spacing:2px;margin-bottom:4px;">NEW DROP ✦</div>
+            <div style="font-family:'Bebas Neue';font-size:38px;color:#fff;line-height:0.9;">STREET<br>WEAR</div>
+            <div style="font-family:'Bebas Neue';font-size:38px;color:transparent;-webkit-text-stroke:1px rgba(255,179,71,0.4);">DUBAI 2026</div>
+          </div>
+          <div style="position:absolute;bottom:14px;left:16px;right:16px;display:flex;gap:8px;">
+            <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid #222;padding:8px;">
+              <div style="font-size:18px;font-family:'Bebas Neue';color:#fff;">AED 199</div>
+              <div style="font-size:8px;color:#555;font-family:'DM Mono',monospace;">TEE — LIMITED</div>
+            </div>
+            <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid #222;padding:8px;">
+              <div style="font-size:18px;font-family:'Bebas Neue';color:#fff;">AED 349</div>
+              <div style="font-size:8px;color:#555;font-family:'DM Mono',monospace;">HOODIE — 12 LEFT</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="project-card-body">
+        <div class="project-card-title">Drop The City — Streetwear</div>
+        <div class="project-card-desc">Full WooCommerce store with product collections, countdown drops, cart & checkout flow, and Instagram feed integration. Built for a UAE streetwear brand.</div>
+        <div class="project-card-footer">
+          <div class="project-card-tech">
+            <span class="project-tag">WordPress</span>
+            <span class="project-tag">WooCommerce</span>
+            <span class="project-tag">JS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5: SaaS Dashboard -->
+    <div class="project-card" style="grid-column: 1 / -1;">
+      <div class="project-card-preview preview-saas" style="height:260px;">
+        <div class="card-browser-bar">
+          <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
+          <div class="browser-url">taskflow.app — Dashboard</div>
+        </div>
+        <div class="card-preview-inner" style="display:flex;">
+          <div class="preview-grid-lines"></div>
+          <div class="preview-scan-line" style="animation-delay:1.8s;"></div>
+          <!-- sidebar -->
+          <div style="width:100px;border-right:1px solid var(--border);padding:12px 8px;display:flex;flex-direction:column;gap:8px;background:rgba(0,255,231,0.02);">
+            <div style="font-family:'Bebas Neue';font-size:13px;color:var(--neon);margin-bottom:8px;text-shadow:0 0 8px var(--neon);">TASK<span style="color:#fff;">FLOW</span></div>
+            <div style="font-size:8px;font-family:'DM Mono',monospace;color:var(--neon);background:rgba(0,255,231,0.08);padding:4px 6px;border-left:2px solid var(--neon);">Dashboard</div>
+            <div style="font-size:8px;font-family:'DM Mono',monospace;color:#555;padding:4px 6px;">Tasks</div>
+            <div style="font-size:8px;font-family:'DM Mono',monospace;color:#555;padding:4px 6px;">Projects</div>
+            <div style="font-size:8px;font-family:'DM Mono',monospace;color:#555;padding:4px 6px;">Team</div>
+            <div style="font-size:8px;font-family:'DM Mono',monospace;color:#555;padding:4px 6px;">Analytics</div>
+          </div>
+          <!-- main area -->
+          <div style="flex:1;padding:12px 16px;">
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <div style="flex:1;background:rgba(0,255,231,0.05);border:1px solid rgba(0,255,231,0.1);padding:8px 10px;">
+                <div style="font-size:18px;font-family:'Bebas Neue';color:var(--neon);">24</div>
+                <div style="font-size:7px;font-family:'DM Mono',monospace;color:#555;letter-spacing:1px;">TASKS DONE</div>
+              </div>
+              <div style="flex:1;background:rgba(255,77,28,0.05);border:1px solid rgba(255,77,28,0.1);padding:8px 10px;">
+                <div style="font-size:18px;font-family:'Bebas Neue';color:var(--accent);">7</div>
+                <div style="font-size:7px;font-family:'DM Mono',monospace;color:#555;letter-spacing:1px;">IN PROGRESS</div>
+              </div>
+              <div style="flex:1;background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.1);padding:8px 10px;">
+                <div style="font-size:18px;font-family:'Bebas Neue';color:#4ade80;">3</div>
+                <div style="font-size:7px;font-family:'DM Mono',monospace;color:#555;letter-spacing:1px;">PROJECTS</div>
+              </div>
+              <div style="flex:1;background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.1);padding:8px 10px;">
+                <div style="font-size:18px;font-family:'Bebas Neue';color:var(--neon2);">89%</div>
+                <div style="font-size:7px;font-family:'DM Mono',monospace;color:#555;letter-spacing:1px;">COMPLETION</div>
+              </div>
+            </div>
+            <!-- mini chart bars -->
+            <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);padding:10px;display:flex;align-items:flex-end;gap:4px;height:90px;">
+              <div style="font-size:7px;font-family:'DM Mono',monospace;color:#555;writing-mode:vertical-rl;margin-right:4px;letter-spacing:1px;">TASKS / WEEK</div>
+              <div style="flex:1;background:rgba(0,255,231,0.3);height:40%;animation:barGrow 2s ease infinite alternate;"></div>
+              <div style="flex:1;background:rgba(0,255,231,0.3);height:65%;animation:barGrow 2s ease .2s infinite alternate;"></div>
+              <div style="flex:1;background:rgba(0,255,231,0.3);height:50%;animation:barGrow 2s ease .4s infinite alternate;"></div>
+              <div style="flex:1;background:rgba(0,255,231,0.3);height:80%;animation:barGrow 2s ease .6s infinite alternate;"></div>
+              <div style="flex:1;background:rgba(0,255,231,0.5);height:90%;animation:barGrow 2s ease .8s infinite alternate;border:1px solid var(--neon);box-shadow:0 0 8px rgba(0,255,231,0.3);"></div>
+              <div style="flex:1;background:rgba(0,255,231,0.3);height:70%;animation:barGrow 2s ease 1s infinite alternate;"></div>
+              <div style="flex:1;background:rgba(0,255,231,0.3);height:55%;animation:barGrow 2s ease 1.2s infinite alternate;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="project-card-body">
+        <div class="project-card-title">TaskFlow — SaaS Dashboard</div>
+        <div class="project-card-desc">A fully interactive project management dashboard UI with task tracking, analytics charts, team views, and a drag-and-drop kanban board. Pure HTML, CSS, and JavaScript — no frameworks.</div>
+        <div class="project-card-footer">
+          <div class="project-card-tech">
+            <span class="project-tag">HTML/CSS/JS</span>
+            <span class="project-tag">Charts</span>
+            <span class="project-tag">UI Design</span>
+            <span class="project-tag">Responsive</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section style="padding-top:0;padding-bottom:100px;">
+  <div class="section-label reveal">04 — How I Work</div>
+  <div class="process-steps reveal">
+    <div class="process-step">
+      <div class="step-n">01</div>
+      <div class="step-title">Discover</div>
+      <div class="step-desc">We talk about your business, goals, and what you want the site to do.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-n">02</div>
+      <div class="step-title">Design</div>
+      <div class="step-desc">I build a clean, bold design that fits your brand and stands out from everyone else.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-n">03</div>
+      <div class="step-title">Build</div>
+      <div class="step-desc">Code it up fast, test it on all devices, make it pixel-perfect.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-n">04</div>
+      <div class="step-title">Launch</div>
+      <div class="step-desc">Go live. Your site is out in the world. You start getting clients.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact-section">
+  <div class="contact-bg"></div>
+  <div class="contact-grid-lines"></div>
+  <div class="contact-eyebrow reveal">05 — Let's Build Something</div>
+  <h2 class="contact-headline reveal">
+    HIRE<br><span class="outline">MANISH</span>
+  </h2>
+  <p class="contact-sub reveal">Available for freelance projects · Dubai & Remote</p>
+
+  <div class="contact-info-row reveal">
+    <div class="contact-info-item">
+      <div>
+        <div class="label">Phone / WhatsApp</div>
+        <div class="value">+971 54 466 4983</div>
+      </div>
+    </div>
+    <div class="contact-info-item">
+      <div>
+        <div class="label">Email</div>
+        <div class="value">manigandanvijayaraghavan@gmail.com</div>
+      </div>
+    </div>
+    <div class="contact-info-item">
+      <div>
+        <div class="label">Location</div>
+        <div class="value">Dubai, UAE 🇦🇪</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="contact-links reveal">
+    <a href="mailto:manigandanvijayaraghavan@gmail.com" class="contact-link primary">✉ Email Me</a>
+    <a href="https://wa.me/971544664983" class="contact-link">✆ WhatsApp</a>
+    <a href="https://instagram.com/" class="contact-link">◎ Instagram</a>
+    <a href="https://fiverr.com/" class="contact-link">⬡ Fiverr</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">MAN<span>.</span></div>
+  <div class="footer-copy">© 2026 Manish Vijayaraghavan — All rights reserved</div>
+  <div class="footer-loc">📍 Dubai, UAE</div>
+</footer>
+
+<style>
+@keyframes barGrow {
+  0% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+</style>
+
+<script>
+// ─── MATRIX CANVAS ───────────────────────────────
+const mc = document.getElementById('matrix-canvas');
+const mctx = mc.getContext('2d');
+function resizeMatrix() { mc.width = window.innerWidth; mc.height = window.innerHeight; }
+resizeMatrix();
+window.addEventListener('resize', resizeMatrix);
+const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ{}[]<>/\\;:';
+const cols = Math.floor(mc.width / 14);
+const drops = Array(cols).fill(1);
+setInterval(() => {
+  mctx.fillStyle = 'rgba(5,5,8,0.05)';
+  mctx.fillRect(0, 0, mc.width, mc.height);
+  mctx.fillStyle = '#00ffe7';
+  mctx.font = '12px DM Mono, monospace';
+  drops.forEach((y, i) => {
+    const c = chars[Math.floor(Math.random() * chars.length)];
+    mctx.fillText(c, i * 14, y * 14);
+    if (y * 14 > mc.height && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  });
+}, 55);
+
+// ─── PARTICLE CANVAS ─────────────────────────────
+const pc = document.getElementById('particle-canvas');
+const pctx = pc.getContext('2d');
+function resizePart() { pc.width = window.innerWidth; pc.height = window.innerHeight; }
+resizePart();
+window.addEventListener('resize', resizePart);
+const PTCOUNT = 70;
+const particles = Array.from({length: PTCOUNT}, () => ({
+  x: Math.random() * pc.width,
+  y: Math.random() * pc.height,
+  vx: (Math.random() - 0.5) * 0.4,
+  vy: (Math.random() - 0.5) * 0.4,
+  r: Math.random() * 1.5 + 0.3,
+  c: Math.random() > 0.6 ? '#00ffe7' : Math.random() > 0.5 ? '#ff4d1c' : '#a855f7'
+}));
+let mx = -999, my = -999;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animPart() {
+  pctx.clearRect(0, 0, pc.width, pc.height);
+  particles.forEach(p => {
+    const dx = mx - p.x, dy = my - p.y, dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 120) { p.vx -= dx/dist * 0.04; p.vy -= dy/dist * 0.04; }
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.99; p.vy *= 0.99;
+    if (p.x < 0) p.x = pc.width; if (p.x > pc.width) p.x = 0;
+    if (p.y < 0) p.y = pc.height; if (p.y > pc.height) p.y = 0;
+    pctx.beginPath();
+    pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    pctx.fillStyle = p.c;
+    pctx.globalAlpha = 0.5;
+    pctx.fill();
+    pctx.globalAlpha = 1;
+  });
+  // draw lines between close particles
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      if (d < 100) {
+        pctx.beginPath();
+        pctx.moveTo(particles[i].x, particles[i].y);
+        pctx.lineTo(particles[j].x, particles[j].y);
+        pctx.strokeStyle = particles[i].c;
+        pctx.globalAlpha = (1 - d/100) * 0.12;
+        pctx.lineWidth = 0.5;
+        pctx.stroke();
+        pctx.globalAlpha = 1;
+      }
+    }
+  }
+  requestAnimationFrame(animPart);
+}
+animPart();
+
+// ─── FLOATING CODE ORBS ──────────────────────────
+const orbTexts = ['<div>', '</div>', 'const x =', 'function()', '.hero{', 'flex:', '// build', 'return;', '@keyframes', 'z-index:9', 'async/await', 'npm run', 'git push', '<html>', 'border:', 'transform:'];
+const hero = document.querySelector('.hero');
+function spawnOrb() {
+  const orb = document.createElement('div');
+  orb.className = 'code-orb';
+  orb.textContent = orbTexts[Math.floor(Math.random() * orbTexts.length)];
+  orb.style.left = Math.random() * 90 + '%';
+  orb.style.bottom = Math.random() * 30 + 10 + '%';
+  const dur = 6 + Math.random() * 6;
+  orb.style.animationDuration = dur + 's';
+  orb.style.animationDelay = '0s';
+  orb.style.color = Math.random() > 0.5 ? 'var(--neon)' : 'rgba(168,85,247,0.7)';
+  hero.appendChild(orb);
+  setTimeout(() => orb.remove(), dur * 1000);
+}
+setInterval(spawnOrb, 800);
+
+// ─── CUSTOM CURSOR ───────────────────────────────
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let cmx=0,cmy=0,crx=0,cry=0;
+document.addEventListener('mousemove', e => { cmx=e.clientX; cmy=e.clientY; cur.style.left=cmx+'px'; cur.style.top=cmy+'px'; });
+(function animRing() { crx+=(cmx-crx)*.12; cry+=(cmy-cry)*.12; ring.style.left=crx+'px'; ring.style.top=cry+'px'; requestAnimationFrame(animRing); })();
+document.querySelectorAll('a, button, .project-row, .skill-card, .project-card').forEach(el => {
+  el.addEventListener('mouseenter', () => { cur.style.width='4px'; cur.style.height='4px'; ring.style.width='56px'; ring.style.height='56px'; ring.style.borderColor='var(--neon)'; });
+  el.addEventListener('mouseleave', () => { cur.style.width='10px'; cur.style.height='10px'; ring.style.width='38px'; ring.style.height='38px'; ring.style.borderColor='var(--accent)'; });
+});
+
+// ─── NAV SCROLL ──────────────────────────────────
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 60));
+
+// ─── REVEAL ON SCROLL ────────────────────────────
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      // animate skill bars
+      e.target.querySelectorAll('.skill-level-fill').forEach(b => {
+        b.style.width = b.dataset.w;
+      });
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+
+// ─── TERMINAL ANIMATION ──────────────────────────
+const lines = [
+  { text: '$ whoami', cls: 'green' },
+  { text: '> manish — web developer', cls: 'cyan' },
+  { text: '$ locate skills/', cls: 'green' },
+  { text: '  /html /css /javascript /wordpress /webflow', cls: 'yellow' },
+  { text: '$ ping dubai.ae', cls: 'green' },
+  { text: '  Reply from 25.2°N 55.2°E: time=1ms', cls: 'muted' },
+  { text: '$ git status', cls: 'green' },
+  { text: '  On branch: main — ready to build', cls: 'cyan' },
+  { text: '$ npm run hire-manish', cls: 'green' },
+  { text: '  ✓ Starting project... client happy.', cls: 'red' },
+];
+const term = document.getElementById('terminal');
+let li = 0;
+function typeLine() {
+  if (li < lines.length) {
+    const d = document.createElement('div');
+    d.className = 't-line ' + lines[li].cls;
+    d.textContent = lines[li].text;
+    d.style.animationDelay = '0s';
+    term.appendChild(d);
+    li++;
+    setTimeout(typeLine, 400);
+  } else {
+    // loop
+    setTimeout(() => { term.innerHTML=''; li=0; typeLine(); }, 4000);
+  }
+}
+setTimeout(typeLine, 1200);
+</script>
+</body>
+</html>
